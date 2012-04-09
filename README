@@ -1,0 +1,28 @@
+Odd Engine v 0.1
+----------------
+
+Author: Justin Smith
+Email: Technohazard@gmail.com
+website: http://www.odddimensions.com
+reddit: http://www.reddit.com/user/Technohazard/
+
+Description:
+Project and repository created to learn Python, PyGame, and Git.
+All the fun game design stuff comes later - right now I just want a nice engine framework.
+
+Future updates and planned features:
+- Scrolling background object
+- auto-compute speed based on difference between self and target rect
+- object 'behaviors' - event-based object messaging
+- point-based object pathing 
+- collision? May not be necessary for RPG engine, but could easily be repurposed for other games
+    may also be used for easy animation scripting
+- character animations
+    - use pygame Sprite class?
+    - 
+- combat!
+    - once animations are complete, add a combat layer
+    - sync combat attacks to simple animations
+    
+
+
