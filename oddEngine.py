@@ -20,6 +20,24 @@ from gameStuff import *
 # Color definitions and helper class
 import myColors
 
+# Game music tracklist, mixer
+import myMusic
+
+# Loading and playing background music:
+musicObj = myMusic.gameMusicHelper()
+musicObj.loadTrack('./music/07 - F6 Gs (Lost Area).mp3')
+
+#start playing music
+musicObj.play()
+
+# Game SFX mixer
+import mySound
+
+soundObj = mySound.gameSoundHelper()
+soundObj.load('./sfx/cat_meow_01.ogg')
+soundObj.load("./sfx/cat_meow_02.wav")
+soundObj.load("./sfx/cat_meow_03.wav")
+
 #Setup debug console object 
 debug_console = cMyDebug()  #creates a new instance of the class and
                 #assigns this object to the local variable x.
@@ -52,7 +70,7 @@ fpsClock = pygame.time.Clock()
 
 ## Setup Display surface and convert to alpha
 screen = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT),0,32)
-#MAINSURF = MAINSURF.convert_alpha()
+screen.convert_alpha()
 
 pygame.display.set_caption(game.getDisplayCaption())
 
@@ -63,17 +81,11 @@ textSurfaceObj_2 = fontObj_diehld.render('New Font!', True, colorObj.RED, colorO
 textRectObj_2 = textSurfaceObj_2.get_rect()
 textRectObj_2.center = (150, 100)
 
-#Load Sound Objects
-soundObj = pygame.mixer.Sound('./sfx/beeps.wav')
 
-# Loading and playing background music:
-pygame.mixer.music.load('./music/07 - F6 Gs (Lost Area).mp3')
-                        
 #Fill window with background color
 screen.fill(BGCOLOR)
 
-#start playing music
-pygame.mixer.music.play(-1, 0.0)
+
 
 #setup game objects
    
@@ -91,17 +103,17 @@ targetlist = [pygame.Rect(100, 100, 10, 10),
               pygame.Rect(100, 200, 10, 10)]
 
 for cat in cats:
-        if cat.load_img('./img/cat.png'):
+        if cat.load_img('./img/cat_01.png'):
                 pass
         else:
                 tempMsg=cat.getErrors()
                 debug_console.addMessage(tempMsg)
                 del tempMsg
 
-cats[0].set_target(targetlist[1])
-cats[1].set_target(targetlist[2])
-cats[2].set_target(targetlist[3])
-cats[3].set_target(targetlist[0])
+# cats[0].set_target(targetlist[1])
+# cats[1].set_target(targetlist[2])
+# cats[2].set_target(targetlist[3])
+# cats[3].set_target(targetlist[0])
 		  
 #main game loop
 while game.isRunning(): 
@@ -113,6 +125,7 @@ while game.isRunning():
         else:
                 #collect errors from cat moves
                 tempMsg = cat.getErrors()
+                tempMsg.append("Cat Update Failed for cat#:" + str(i))
                 debug_console.addMessage(tempMsg)
                 del tempMsg                        
 
@@ -145,12 +158,12 @@ while game.isRunning():
                         if pygame.mixer.music.get_busy() == True:
                             tempMsg="Music Paused!"
                             debug_console.addMessage([tempMsg])
-                            pygame.mixer.music.fadeout(3)
+                            musicObj.fadeOut(3)
                             del tempMsg
                         else:
                             tempMsg="Music Restarted!"
                             debug_console.addMessage([tempMsg])
-                            pygame.mixer.music.play(-1, 0.0)
+                            musicObj.play()
                             del tempMsg
                     if (event.key == K_d): # Debug Toggle
                         if debug_console.isVisible():
@@ -209,7 +222,7 @@ while game.isRunning():
                     if event.key == K_DOWN:
                             cats[selected_cat].set_speed([cats[selected_cat].speed[0], cats[selected_cat].speed[1] + 1])
                     if event.key == K_t:
-                            if selected_cat < len(cats):
+                            if selected_cat < (len(cats)-1):
                                     selected_cat += 1
                                     tempMsg = "Cat #" + str(selected_cat) + " selected"
                                     debug_console.addMessage([tempMsg])
@@ -222,7 +235,7 @@ while game.isRunning():
                     mouseMgr.set_pos(event.pos)
                     mouseMgr.set_clicked(True)
               
-    pygame.display.flip()
+    pygame.display.update()
     fpsClock.tick(FPS)
 #End main while loop
 

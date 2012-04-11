@@ -3,16 +3,21 @@ import myColors
 from gameStuff import *
 
 class cMyCat():
-    def __init__(self, init_pos=(0, 0), init_speed=[0, 0], init_id=0):
+    def __init__(self, init_pos=(0, 0), init_speed=[0, 0], init_id = 0):
         self.id = init_id
+        
         self.rect = pygame.Rect(init_pos,(10,10))
         self.target = self.rect
-        self.bounding = pygame.Rect((0,0),(WINDOW_WIDTH, WINDOW_HEIGHT)) ## by default the bounding rect is as big as the window
+        
+        # by default the bounding rect is as big as the window
+        self.bounding = pygame.Rect((0,0),(WINDOW_WIDTH, WINDOW_HEIGHT)) 
         self.speed = init_speed
         self.img_path = "./" 
+        
         # Obj color settings
         self.colorObj = myColors.colorHelper()
         self.transColor = self.colorObj.getColor("TRANSPARENT") #set transparent color to global default
+        
         # Obj Error queue and reporting
         self.errorQueue=[]
         self.errorQueue.append("Initialized object Id:" + str(self.id))
@@ -20,7 +25,7 @@ class cMyCat():
         self.brokenmessage = "Working!" # store error responses when broken
         self.imageloaded = False # no image is loaded into an object by default
         self.movespeed = 1 # default movespeed is one for all objects (rounded up from zero)
-        self.selected = False # display selection cursor around it
+        self.selected = False # display selection cursor around object
         
     def load_img(self, init_img_path="./"):
         # fill both surfaces with the transparent color
@@ -55,6 +60,7 @@ class cMyCat():
 	
     def update(self, surface):
         if self.broken == False:
+            #First, erase the old sprite
             if self.erase(surface):
                 pass
             else:
@@ -65,7 +71,6 @@ class cMyCat():
             if self.move(self.target, surface.get_rect()) == True:
                 pass
             else:
-                self.broken = True
                 self.brokenmessage = "Move failed for id:" + str(self.id)
                 self.addError(self.brokenmessage)
                 return False # update failed
@@ -78,9 +83,8 @@ class cMyCat():
                 self.addError(self.brokenmessage)
                 return False # update failed
         else:
-            return False
+            return True # made it out alive! :)
             
-    
     def move(self, target_rect, bounding_rect):
         # Moves the cMyCat object according to self.speed
         # Takes a pygame.Rect() objects in parameters.
@@ -89,15 +93,14 @@ class cMyCat():
         if not isinstance(target_rect, pygame.Rect):
             self.brokenmessage = "failed move(): Invalid type for target_rect parameter!\n"
             self.target = self.rect
-            return False    #Move function failed! This will flag broken!
+            return False    # Move function failed! This will flag broken!
             
         if not isinstance(bounding_rect, pygame.Rect):
             self.brokenmessage = "failed move(): Invalid type for bounding_rect parameter!\n"
             self.bounding = self.rect
-            return False    #Move function failed! This will flag broken!
-        
-        if (bounding_rect != self.target):
-            self.set_target(bounding_rect)
+            return False    # Move function failed! This will flag broken!
+        elif (bounding_rect != self.bounding):
+            self.bounding = bounding_rect
             
         # once we have done sanity checking, continue with moving the Obj
         self.rect.move_ip(self.speed[0], self.speed[1])
@@ -106,7 +109,7 @@ class cMyCat():
         else:
             self.brokenmessage = "failed move(): Invalid type for bounding_rect parameter!\n"
             self.target = self.rect
-            return False    #Move function failed! This will flag broken!
+            return False    # Move function failed! This will flag broken!
         return True # if nothing went wrong!
     
     def erase(self, surface):
@@ -157,7 +160,7 @@ class cMyCat():
     def addError(self, temp_msg=""):
         self.errorQueue.append(str(temp_msg))        
         
-    def limit_check(self, bounding_rect, bounce=True):
+    def limit_check(self, bounding_rect, bounce = True):
         if bounding_rect.contains(self.rect):
             return True # Obj is within bounds
         else: # if the Obj is outside of bounding_rect
@@ -201,30 +204,34 @@ class cMyCat():
         draws a cursor based on self.rect onto target surface
         """
         #Create a temporary draw surface+rect combo
-        temp_surf = pygame.Surface((self.rect.width,self.rect.height))
+        temp_surf = pygame.Surface((self.rect.width + line_width, self.rect.height + line_width))
+        temp_surf.set_colorkey(self.transColor)
+        temp_surf.fill(self.transColor)
+        temp_surf.convert_alpha()
+        
         temp_rect = self.rect
         
         # Define pointlists containing the corners of the cursor's lines
-        top_left = [(temp_rect.left, temp_rect.top - (temp_rect.height * 0.20)),
+        top_left = [(temp_rect.left, temp_rect.top + (temp_rect.height * 0.20)),
                     temp_rect.topleft,
                     ((temp_rect.left + (temp_rect.width * 0.20), temp_rect.top))]
         top_right = [(temp_rect.right - (temp_rect.width * 0.20), temp_rect.top),
                     temp_rect.topright,
-                    (temp_rect.right, temp_rect.top - (temp_rect.height * 0.20))]
-        bottom_left = [(temp_rect.left, temp_rect.top - (temp_rect.height * 0.20)),
+                    (temp_rect.right, temp_rect.top + (temp_rect.height * 0.20))]
+        bottom_left = [(temp_rect.left, temp_rect.bottom - (temp_rect.height * 0.20)),
                     temp_rect.bottomleft,
-                    ((temp_rect.left + (temp_rect.width * 0.20), temp_rect.top))]
-        bottom_right = [(temp_rect.left, temp_rect.top - (temp_rect.height * 0.20)),
+                    ((temp_rect.left + (temp_rect.width * 0.20), temp_rect.bottom))]
+        bottom_right = [(temp_rect.right, temp_rect.bottom - (temp_rect.height * 0.20)),
                     temp_rect.bottomright,
-                    ((temp_rect.left + (temp_rect.width * 0.20), temp_rect.top))]
+                    ((temp_rect.right - (temp_rect.width * 0.20), temp_rect.bottom))]
                     
         # recreate the line_color parameter into a pygame.color object
         line_color = self.colorObj.getColor(line_color)
         
         # draw cursor lines onto the temp surface
-        pygame.draw.lines(temp_surf, line_color, False, top_left, 1)
-        pygame.draw.lines(temp_surf, line_color, False, top_right, 1)
-        pygame.draw.lines(temp_surf, line_color, False, bottom_left, 1)
-        pygame.draw.lines(temp_surf, line_color, False, bottom_right, 1)
+        pygame.draw.lines(temp_surf, line_color, False, top_left, line_width)
+        pygame.draw.lines(temp_surf, line_color, False, top_right, line_width)
+        pygame.draw.lines(temp_surf, line_color, False, bottom_left, line_width)
+        pygame.draw.lines(temp_surf, line_color, False, bottom_right, line_width)
         
-        surface.blit(temp_surf, self.rect)
+        surface.blit(temp_surf, temp_rect)
