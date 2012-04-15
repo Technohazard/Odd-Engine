@@ -2,6 +2,8 @@ import sys
 import pygame
 from pygame.locals import *
 
+pygame.init()
+
 # Game Clock + timing
 import time
 
@@ -54,13 +56,6 @@ colorObj = myColors.colorHelper()
 ## Author: Justin Smith
 ## Email: odd_dimensions@gmail.com
 
-from gameConstants import *
-
-# define game colors, menu colors, etc.
-BGCOLOR = colorObj.BLACK
-
-pygame.init()
-
 ## Game metadata class + object
 game = gameData()
 
@@ -68,76 +63,88 @@ game = gameData()
 FPS = 30 # frames per second setting
 fpsClock = pygame.time.Clock()
 
-## Setup Display surface and convert to alpha
-screen = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT),0,32)
+## Setup Display surface, background, and convert to alpha
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT),0,32)
 screen.convert_alpha()
+screen.fill(colorObj.BGCOLOR) # fill with background color
+pygame.display.set_caption(game.getDisplayCaption()) # Title Window
 
-pygame.display.set_caption(game.getDisplayCaption())
+import myBackground
 
-#setup game fonts
+backgroundObj = myBackground.cMyBG([('./img/cat_paradise_800x600.png', 0),
+                                    ('./img/cloud_scroll_bg_800x600.png', 1)])
+backgroundObj.draw()
+background = backgroundObj.get_img()
+displayBG = False
 
+# Font Drawing test object
 fontObj_diehld = pygame.font.Font('./fonts/DIEHLD__.ttf', 32)
 textSurfaceObj_2 = fontObj_diehld.render('New Font!', True, colorObj.RED, colorObj.BLACK)
 textRectObj_2 = textSurfaceObj_2.get_rect()
 textRectObj_2.center = (150, 100)
 
-
-#Fill window with background color
-screen.fill(BGCOLOR)
-
-
-
-#setup game objects
+# Setup game objects
    
-#make a list of cats
+# Make a list of game objects
 cats = []
-cats.append(cMyCat(init_pos=(100, 100), init_speed=[1, 0], init_id = 0))
-cats.append(cMyCat(init_pos=(200, 100), init_speed=[0, 1], init_id = 1))
-cats.append(cMyCat(init_pos=(200, 200), init_speed=[-1, 0], init_id = 2))
-cats.append(cMyCat(init_pos=(100, 200), init_speed=[0, -1], init_id = 3))
+cats.append(cMyCat((200, 200), [1, 0], 0))
+cats.append(cMyCat((500, 200), [0, 1], 1))
+cats.append(cMyCat((500, 400), [-1, 0], 2))
+cats.append(cMyCat((200, 400), [0, -1], 3))
 selected_cat = 0 
 
+# Make a list of Targets
 targetlist = [pygame.Rect(100, 100, 10, 10),
-              pygame.Rect(200, 100, 10, 10),
-              pygame.Rect(200, 200, 10, 10),
-              pygame.Rect(100, 200, 10, 10)]
+              pygame.Rect(700, 100, 10, 10),
+              pygame.Rect(700, 700, 10, 10),
+              pygame.Rect(100, 700, 10, 10)]
 
+# Load cat images - all the same for now.
 for cat in cats:
         if cat.load_img('./img/cat_01.png'):
                 pass
         else:
-                tempMsg=cat.getErrors()
-                debug_console.addMessage(tempMsg)
-                del tempMsg
+                debug_console.addMessage(cat.getErrors())
 
 # cats[0].set_target(targetlist[1])
 # cats[1].set_target(targetlist[2])
 # cats[2].set_target(targetlist[3])
 # cats[3].set_target(targetlist[0])
 		  
-#main game loop
+# Core game loop
 while game.isRunning(): 
-    # Update all cats
-    for i, cat in enumerate(cats):
-        if cat.update(screen):
-                if i == selected_cat:
-                    cat.draw_select(screen)
-        else:
-                #collect errors from cat moves
-                tempMsg = cat.getErrors()
-                tempMsg.append("Cat Update Failed for cat#:" + str(i))
-                debug_console.addMessage(tempMsg)
-                del tempMsg                        
 
-    #display debug console main try loop
+    # update backgrounds
+    # Each background is independently updated, which animates / draws / it as necessary
+    # draw() renders all backgrounds onto a single Surface
+    if displayBG == True:
+            backgroundObj.update()
+            if backgroundObj.isDirty():
+                    backgroundObj.draw(background)
+                    screen.blit(background, SCREEN_RECT, SCREEN_RECT)
+            
+    # Update all cats
+    for cat in cats:
+        cat.erase(screen, background)
+        cat.move()
+
+    for cat in cats:
+        cat.draw(screen)
+
+        # Collect errors from cat moves
+        if cat.isError == True:
+                debug_console.addMessage(cat.getErrors())
+
+    # Display debug console main try loop
     if debug_console.isActive():
-            #collect messages from appropriate objects and dump to debug queue
+            # Collect messages from appropriate objects and dump to debug queue
                     if debug_console.isVisible():
                             if debug_console.draw(screen):
                                     pass
                             else:
                                     print ("Debug Draw failed, autohiding ")
                                     debug_console.hideConsole()
+                                    debug_console.erase(screen, background)
                             
     #except (RuntimeError, TypeError, NameError):
     #        debug_console.addMessage(["Debug Console Couldn't Display!"])
@@ -177,7 +184,7 @@ while game.isRunning():
                             debug_console.showConsole()
                             del tempMsg
                     if (event.key == K_a): # Add debug Msg.
-                            tempMsg="Test!"
+                            tempMsg="Mouse: " + str(mouseMgr.get_pos())
                             debug_console.addMessage([tempMsg])
                             del tempMsg
                     if (event.key == K_p): # Pause
@@ -222,13 +229,31 @@ while game.isRunning():
                     if event.key == K_DOWN:
                             cats[selected_cat].set_speed([cats[selected_cat].speed[0], cats[selected_cat].speed[1] + 1])
                     if event.key == K_t:
+                            cats[selected_cat].unselect()
                             if selected_cat < (len(cats)-1):
                                     selected_cat += 1
-                                    tempMsg = "Cat #" + str(selected_cat) + " selected"
-                                    debug_console.addMessage([tempMsg])
-                                    del tempMsg
                             else:
                                     selected_cat = 0
+                            tempMsg = "Cat #" + str(selected_cat) + " selected"
+                            cats[selected_cat].select()
+                            debug_console.addMessage([tempMsg])
+                            del tempMsg
+                    if event.key == K_b:
+                        if displayBG == True:
+                            tempMsg = "Background Off"
+                            debug_console.addMessage([tempMsg])
+                            displayBG = False
+                            del tempMsg
+                        else:
+                            tempMsg = "Background On"
+                            debug_console.addMessage([tempMsg])
+                            displayBG = True
+                            del tempMsg
+                    if event.key == K_c:
+                        tempMsg = "Cat#" + str(selected_cat) + ": " + str(cats[selected_cat].get_rect())
+                        screen.blit(cats[selected_cat].img, mouseMgr.get_pos())
+                        debug_console.addMessage([tempMsg])
+
             elif (event.type == MOUSEMOTION):
                     mouseMgr.set_pos(event.pos)
             elif (event.type == MOUSEBUTTONUP):

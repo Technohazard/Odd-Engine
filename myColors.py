@@ -25,7 +25,7 @@ class colorHelper():
                     'CURSOR_COLOR': pygame.Color(255, 255, 0, 128),
                     'DEBUG_FONT_COLOR': pygame.Color(0, 255, 0, 255),
                     'DEBUG_BG_COLOR': pygame.Color(0, 64, 0, 64),
-                    
+                    'BGCOLOR': pygame.Color(0, 0, 0, 255)
                     }
                     
     WHITE = colorDict['WHITE']
@@ -48,6 +48,8 @@ class colorHelper():
     DEBUG_BG_COLOR = colorDict['DEBUG_BG_COLOR'] # Dark Green @ 25% alpha
     
     CURSOR_COLOR = colorDict['CURSOR_COLOR'] # Yellow @ 50% alpha
+    
+    BGCOLOR = colorDict['BLACK'] # Black Background
     
     # Define Fuschia as the default transparent color
     TRANSPARENT = FUCHSIA
