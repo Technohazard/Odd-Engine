@@ -1,6 +1,9 @@
 import sys
 import pygame
 from pygame.locals import *
+import random
+
+pygame.init()
 
 # Game Clock + timing
 import time
@@ -34,10 +37,15 @@ musicObj.play()
 import mySound
 
 soundObj = mySound.gameSoundHelper()
-soundObj.load('./sfx/cat_meow_01.ogg')
-soundObj.load("./sfx/cat_meow_02.wav")
-soundObj.load("./sfx/cat_meow_03.wav")
+soundObj.load('./sfx/cat_meow_01.ogg', "MEOW1")
+soundObj.load("./sfx/cat_meow_02.wav", "MEOW2")
+soundObj.load("./sfx/cat_meow_03.wav", "MEOW3")
+soundObj.load("./sfx/cat_purr_long.wav", "PURR")
 
+cat_types = ['./img/cat_01.png',
+             './img/cat_02.png',
+             './img/cat_03.png']
+                        
 #Setup debug console object 
 debug_console = cMyDebug()  #creates a new instance of the class and
                 #assigns this object to the local variable x.
@@ -54,13 +62,6 @@ colorObj = myColors.colorHelper()
 ## Author: Justin Smith
 ## Email: odd_dimensions@gmail.com
 
-from gameConstants import *
-
-# define game colors, menu colors, etc.
-BGCOLOR = colorObj.BLACK
-
-pygame.init()
-
 ## Game metadata class + object
 game = gameData()
 
@@ -68,76 +69,102 @@ game = gameData()
 FPS = 30 # frames per second setting
 fpsClock = pygame.time.Clock()
 
-## Setup Display surface and convert to alpha
-screen = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT),0,32)
+## Setup Display surface, background, and convert to alpha
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT),0,32)
 screen.convert_alpha()
+screen.fill(colorObj.BGCOLOR) # fill with background color
+pygame.display.set_caption(game.getDisplayCaption()) # Title Window
 
-pygame.display.set_caption(game.getDisplayCaption())
+import myBackground
 
-#setup game fonts
+backgroundObj = myBackground.cMyBG([('./img/cat_paradise_800x600.png', 0),
+                                    ('./img/cloud_scroll_bg_800x600.png', 1)])
+backgroundObj.draw()
+background = backgroundObj.get_img()
+displayBG = False
 
+# Font Drawing test object
 fontObj_diehld = pygame.font.Font('./fonts/DIEHLD__.ttf', 32)
 textSurfaceObj_2 = fontObj_diehld.render('New Font!', True, colorObj.RED, colorObj.BLACK)
 textRectObj_2 = textSurfaceObj_2.get_rect()
 textRectObj_2.center = (150, 100)
 
+# button test
+import myButton
+button = myButton.cMyButton("OK", (350,320),(64,64),0)
 
-#Fill window with background color
-screen.fill(BGCOLOR)
-
-
-
-#setup game objects
+# Setup game objects
    
-#make a list of cats
+# Make a list of game objects
 cats = []
-cats.append(cMyCat(init_pos=(100, 100), init_speed=[1, 0], init_id = 0))
-cats.append(cMyCat(init_pos=(200, 100), init_speed=[0, 1], init_id = 1))
-cats.append(cMyCat(init_pos=(200, 200), init_speed=[-1, 0], init_id = 2))
-cats.append(cMyCat(init_pos=(100, 200), init_speed=[0, -1], init_id = 3))
+cats.append(cMyCat((200, 200), [1, 0], 0, './img/cat_01.png'))
+cats.append(cMyCat((500, 200), [0, 1], 1, random.choice(cat_types)))
+cats.append(cMyCat((500, 400), [-1, 0], 2, random.choice(cat_types)))
+cats.append(cMyCat((200, 400), [0, -1], 3, random.choice(cat_types)))
 selected_cat = 0 
 
+# Make a list of Targets
 targetlist = [pygame.Rect(100, 100, 10, 10),
-              pygame.Rect(200, 100, 10, 10),
-              pygame.Rect(200, 200, 10, 10),
-              pygame.Rect(100, 200, 10, 10)]
+              pygame.Rect(700, 100, 10, 10),
+              pygame.Rect(700, 700, 10, 10),
+              pygame.Rect(100, 700, 10, 10)]
 
-for cat in cats:
-        if cat.load_img('./img/cat_01.png'):
-                pass
-        else:
-                tempMsg=cat.getErrors()
-                debug_console.addMessage(tempMsg)
-                del tempMsg
+# Load cat images - all the same for now.
+#for cat in cats:
+#        if cat.id != 1:
+#                if cat.load_img('./img/cat_01.png'):
+#                        pass
+#        else:
+#               debug_console.addMessage(cat.getErrors())
 
 # cats[0].set_target(targetlist[1])
 # cats[1].set_target(targetlist[2])
 # cats[2].set_target(targetlist[3])
 # cats[3].set_target(targetlist[0])
 		  
-#main game loop
+# Core game loop
 while game.isRunning(): 
-    # Update all cats
-    for i, cat in enumerate(cats):
-        if cat.update(screen):
-                if i == selected_cat:
-                    cat.draw_select(screen)
-        else:
-                #collect errors from cat moves
-                tempMsg = cat.getErrors()
-                tempMsg.append("Cat Update Failed for cat#:" + str(i))
-                debug_console.addMessage(tempMsg)
-                del tempMsg                        
 
-    #display debug console main try loop
+    # update backgrounds
+    # Each background is independently updated, which animates / draws / it as necessary
+    # draw() renders all backgrounds onto a single Surface
+    if displayBG == True:
+            backgroundObj.update()
+            if backgroundObj.isDirty():
+                    backgroundObj.draw(background)
+                    screen.blit(background, SCREEN_RECT, SCREEN_RECT)
+            
+    # Update all cats
+    for cat in cats:
+        cat.erase(screen, background)
+        cat.move()
+
+    for cat in cats:
+        cat.draw(screen)
+
+        # Collect errors from cat moves
+        if cat.isError == True:
+                debug_console.addMessage(cat.getErrors())
+
+# Draw buttons and menus        
+        button.erase(screen, background)
+        button.update()        
+        button.draw(screen)
+        if button.isError == True:
+                debug_console.addMessage(button.getErrors())
+        # http://colorschemedesigner.com/#5311Tw0w0w0w0
+        
+
+    # Display debug console main try loop
     if debug_console.isActive():
-            #collect messages from appropriate objects and dump to debug queue
+            # Collect messages from appropriate objects and dump to debug queue
                     if debug_console.isVisible():
                             if debug_console.draw(screen):
                                     pass
                             else:
                                     print ("Debug Draw failed, autohiding ")
                                     debug_console.hideConsole()
+                                    debug_console.erase(screen, background)
                             
     #except (RuntimeError, TypeError, NameError):
     #        debug_console.addMessage(["Debug Console Couldn't Display!"])
@@ -152,6 +179,7 @@ while game.isRunning():
                     game.halt()
             elif (event.type == KEYDOWN):
                     _ = pygame.key.name(event.key)
+                    debug_console.addMessage([_])    
                     #render keypressed to text
             elif (event.type == KEYUP): 
                     if (event.key == K_m): #Fade out / restart music toggle
@@ -177,7 +205,7 @@ while game.isRunning():
                             debug_console.showConsole()
                             del tempMsg
                     if (event.key == K_a): # Add debug Msg.
-                            tempMsg="Test!"
+                            tempMsg="Mouse: " + str(mouseMgr.get_pos())
                             debug_console.addMessage([tempMsg])
                             del tempMsg
                     if (event.key == K_p): # Pause
@@ -222,23 +250,68 @@ while game.isRunning():
                     if event.key == K_DOWN:
                             cats[selected_cat].set_speed([cats[selected_cat].speed[0], cats[selected_cat].speed[1] + 1])
                     if event.key == K_t:
+                            cats[selected_cat].unselect()
                             if selected_cat < (len(cats)-1):
                                     selected_cat += 1
-                                    tempMsg = "Cat #" + str(selected_cat) + " selected"
-                                    debug_console.addMessage([tempMsg])
-                                    del tempMsg
                             else:
                                     selected_cat = 0
+                            tempMsg = "Cat #" + str(selected_cat) + " selected"
+                            cats[selected_cat].select()
+                            debug_console.addMessage([tempMsg])
+                            del tempMsg
+                    if event.key == K_b:
+                        if displayBG == True:
+                            tempMsg = "Background Off"
+                            debug_console.addMessage([tempMsg])
+                            displayBG = False
+                            del tempMsg
+                        else:
+                            tempMsg = "Background On"
+                            debug_console.addMessage([tempMsg])
+                            displayBG = True
+                            del tempMsg
+                    if event.key == K_c:
+                        new_cat_id = len(cats) + 1
+                        
+                        cats.append(cMyCat(mouseMgr.get_pos(), [0, 0], new_cat_id, random.choice(cat_types)))
+                        tempMsg = "Cat#" + str(selected_cat) + ": " + str(cats[selected_cat].get_rect())
+                        debug_console.addMessage([tempMsg])
+                        del tempMsg
+                        soundObj.play("PURR")
+
             elif (event.type == MOUSEMOTION):
-                    mouseMgr.set_pos(event.pos)
+                    mouseMgr.eventHandler(event)
+                    if button.rollover(mouseMgr.get_pos()):
+                            x = random.randint(0,2)
+                            print(str(x))
+                            if x == 0:
+                                soundObj.play("MEOW1")
+                            elif x == 1:
+                                soundObj.play("MEOW2")
+                            elif x == 2:
+                                soundObj.play("MEOW3")
+                            else:
+                                soundObj.play("MEOW1")
+                                
             elif (event.type == MOUSEBUTTONUP):
-                    mouseMgr.set_pos(event.pos)
-                    mouseMgr.set_clicked(True)
-              
+                    mouseMgr.eventHandler(event)
+                    if button.rollover(mouseMgr.get_pos()):
+                            button.release(event.button)
+                            
+            elif (event.type == MOUSEBUTTONDOWN):
+                    mouseMgr.eventHandler(event)
+                    if button.rollover(mouseMgr.get_pos()):
+                            button.click(event.button)
+
+# Main Display update and clock tick                            
     pygame.display.update()
     fpsClock.tick(FPS)
+    
 #End main while loop
 
-pygame.mixer.music.stop()
+#Cleanup and exit
+pygame.mixer.quit()
+while pygame.mixer.get_init() != None :
+        pass
 pygame.quit()
 sys.exit()

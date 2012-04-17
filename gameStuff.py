@@ -1,6 +1,10 @@
+import pygame
+
 # Constant definitions
 WINDOW_WIDTH = 800 # size of window's width in pixels
 WINDOW_HEIGHT = 600 # size of windows' height in pixels
+
+SCREEN_RECT = pygame.Rect((0, 0), (WINDOW_WIDTH, WINDOW_HEIGHT))
 
 class gameData():
     def __init__(self, init_version="v0.1",

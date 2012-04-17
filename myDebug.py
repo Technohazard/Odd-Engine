@@ -20,17 +20,18 @@ class cMyDebug():
         self.colorObj = myColors.colorHelper()
         self.messageQueue = ["myDebug v0.1:"] #initialize a message queue for active display
 
-        self.viewLines = 10 # number of messages to display in the debug window
+        self.viewLines = 20 # number of messages to display in the debug window
         self.viewRange = (0,self.viewLines)    # keep track of which messages we are displaying.
 
         # set some default appearance values
         self.font_dir = "./fonts/"
         self.font_file = "coders_crux.ttf"
         self.font_path = str(self.font_dir + self.font_file)
-        self.font_size = 32 
+        self.font_size = 16 
         self.bgColor = self.colorObj.DEBUG_BG_COLOR
         self.fontColor = self.colorObj.DEBUG_FONT_COLOR
         self.maxMessageLimit = 10000 # for debug purposes, don't accept messages
+        self.verbose = False # display interior error messages?
         
         pygame.font.init()
         self.fontObj = pygame.font.Font(self.font_path, self.font_size)
@@ -55,13 +56,13 @@ class cMyDebug():
         adds list of passed messages to debug output message queue    
         """
         for temp in temp_message:
-            print ("Adding Message: " + str(temp))
+            print ("Debug: " + str(temp))
             if len(self.messageQueue) < self.maxMessageLimit:
                 self.messageQueue.append(temp)
                 if len(self.messageQueue) > self.viewLines:
                     self.scroll(1)
             else:
-                print("Couldn't add any more debug messages: queue full")
+                print("Debug: Couldn't add any more debug messages: queue full")
 
     def font_load(self, init_fontpath = "./", init_fontSize = 32):
         """
@@ -92,8 +93,8 @@ class cMyDebug():
         surface.blit(self.surfaceObj, self.rectObj)
         return True
     
-    def erase(self, surface):
-        surface.blit(self.bg, self.rect)
+    def erase(self, surface, background):
+        surface.blit(background, self.rect)
         return True
         
         
@@ -119,7 +120,8 @@ class cMyDebug():
         if isinstance(self.surfaceObj, pygame.Surface):
             return True
         else:
-            print ("Debug Console surface creation failed in renderMessages()")
+            if self.verbose == True :
+                print ("Debug Console surface creation failed in renderMessages()")
             self.hideConsole()
             return False
         
@@ -128,9 +130,10 @@ class cMyDebug():
         
     def scroll(self, n = 1):
             self.viewRange = (self.viewRange[0]+1,self.viewRange[1]+1)
-            tempStr = str(self.viewRange[0]) + ":" +str(self.viewRange[1])
-            print("scrolling..." + tempStr)
-            return True
+            if self.verbose == True :
+                tempStr = str(self.viewRange[0]) + ":" +str(self.viewRange[1])
+                print("scrolling..." + tempStr)
+                return True
             
     def isDirty(self):
         return self.dirty

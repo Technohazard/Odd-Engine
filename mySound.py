@@ -15,7 +15,9 @@ class gameSoundHelper():
         del tempSnd
         
     def play(self, init_ref="DEFAULT_BEEP"):
-        
+        for name, sfx in self.sfx_list:
+            if init_ref == name:
+                sfx.play()
         pass
     
     def list_all(self):

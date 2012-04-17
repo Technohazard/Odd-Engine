@@ -25,7 +25,12 @@ class colorHelper():
                     'CURSOR_COLOR': pygame.Color(255, 255, 0, 128),
                     'DEBUG_FONT_COLOR': pygame.Color(0, 255, 0, 255),
                     'DEBUG_BG_COLOR': pygame.Color(0, 64, 0, 64),
-                    
+                    'BGCOLOR': pygame.Color(0, 0, 0, 255),
+                    'BUTTON_BG_COLOR': pygame.Color("#8F2471"),
+                    'BUTTON_FONT_COLOR': pygame.Color("#DF64BD"),
+                    'BUTTON_BORDER_COLOR': pygame.Color("#DF38B1"),
+                    'BUTTON_CLICK_COLOR': pygame.Color("#BE008A"),
+                    'BUTTON_SHADOW_COLOR': pygame.Color("#7C005A")
                     }
                     
     WHITE = colorDict['WHITE']
@@ -49,9 +54,18 @@ class colorHelper():
     
     CURSOR_COLOR = colorDict['CURSOR_COLOR'] # Yellow @ 50% alpha
     
+    BGCOLOR = colorDict['BLACK'] # Black Background
+    
     # Define Fuschia as the default transparent color
     TRANSPARENT = FUCHSIA
 
+    # Button colors
+    BUTTON_BG_COLOR = colorDict['BUTTON_BG_COLOR']
+    BUTTON_FONT_COLOR = colorDict['BUTTON_FONT_COLOR']
+    BUTTON_BORDER_COLOR = colorDict['BUTTON_BORDER_COLOR']
+    BUTTON_CLICK_COLOR = colorDict['BUTTON_CLICK_COLOR']
+    BUTTON_SHADOW_COLOR = colorDict['BUTTON_SHADOW_COLOR']
+    
     def getColor(self, cname="BLACK"):
         """
         Lookup color name in internal dictionary and return appropreate pygame color object
