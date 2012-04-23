@@ -5,15 +5,17 @@ class cMyMouse():
     def __init__(self):
         self.pos = (0,0)
         self.rel = (0,0)
-        self.rect = pygame.Rect(self.pos, (64,64))
-        self.dirty = False
-        self.click_log = [((0,0), 1, "UP")] # initialize the click log with
-        self.cursor = pygame.Surface((self.rect.w, self.rect.h))
         self.LB = "UP"
         self.RB = "UP"
         self.MB = "UP"
         self.wheelup = "UP"
         self.wheeldown = "UP"
+        
+        self.rect = pygame.Rect(self.pos, (64,64))
+        self.cursor = pygame.Surface((self.rect.w, self.rect.h))
+        self.dirty = False
+        
+        self.click_log = [((0,0), 1, "UP")] # initialize the click log with 0 data
     
     def eventHandler(self, myEvent):
         if myEvent.type == MOUSEMOTION:
@@ -60,7 +62,18 @@ class cMyMouse():
         Takes a tuple as a position, and stores it in the clicks log.
         """
         self.click_log.append((click_pos, click_btn, click_type))
-
+    
+    def get_click_log(self):
+        """ 
+        returns list of clicks as a tuple (pos, button, type)
+        deletes the clicks out of the log!
+        """
+        sendLog = self.click_log[0:len(self.click_log)]
+        del self.click_log[0:len(self.click_log)]
+        self.click_log = []
+        return sendLog
+   
+    
     def release(self, click_pos, click_btn = "LEFT", click_type = "UP"):
         """
         Takes a tuple as a position, and stores it in the clicks log.

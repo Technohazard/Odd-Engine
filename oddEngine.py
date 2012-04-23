@@ -5,6 +5,8 @@ import random
 
 pygame.init()
 
+pygame.init()
+
 # Game Clock + timing
 import time
 
@@ -117,6 +119,7 @@ targetlist = [pygame.Rect(100, 100, 10, 10),
 #        else:
 #               debug_console.addMessage(cat.getErrors())
 
+
 # cats[0].set_target(targetlist[1])
 # cats[1].set_target(targetlist[2])
 # cats[2].set_target(targetlist[3])
@@ -153,7 +156,6 @@ while game.isRunning():
         if button.isError == True:
                 debug_console.addMessage(button.getErrors())
         # http://colorschemedesigner.com/#5311Tw0w0w0w0
-        
 
     # Display debug console main try loop
     if debug_console.isActive():

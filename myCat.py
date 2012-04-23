@@ -53,7 +53,6 @@ class cMyCat():
             except IOError:
                 tempMsg = "load_img(" + str(self.img_path) + ") image load failed"
                 self.addError(tempMsg)
-                self.isError = True
                 del tempMsg
             
             # set the color key
@@ -93,7 +92,6 @@ class cMyCat():
             if not isinstance(bounding_rect, pygame.Rect):
                 tempMsg = "id#" +self.id + " move(): Invalid type for bounding_rect parameter!"
                 self.addError(tempMsg)
-                self.isError = True
                 del tempMsg
                 self.bounding = self.rect
             elif (bounding_rect != self.bounding):
